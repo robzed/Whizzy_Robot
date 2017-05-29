@@ -36,17 +36,27 @@ def whizzy_main():
     pass
 
 def cmd_main():
+    print("Welcome to Whizzy")
     hw.setup_hardware()
+    print("Currently", gopigo.volt(), "volts")
     if len(sys.argv) >= 2:
         cmd = sys.argv[1]
-        if cmd == "Lon":
+        if cmd == "Hon":
             hw.turn_on_white_headlights()
-        elif cmd == "Loff":
+        elif cmd == "Hoff":
             hw.turn_off_headlights()
         elif cmd == "buzz":
             hw.buzzer_on()
         elif cmd == "silence":
             hw.buzzer_off()
+        elif cmd == "lledon":
+            gopigo.led_on(1)
+        elif cmd == "lledoff":
+            gopigo.led_off(1)
+        elif cmd == "rledon":
+            gopigo.led_on(0)
+        elif cmd == "rledoff":
+            gopigo.led_off(0)
         else:
             print("Unknown command line argument")
             sys.exit(-201)
