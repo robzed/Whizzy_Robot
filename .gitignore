@@ -1,6 +1,10 @@
 # General computer stuff
 .DS_Store
 
+# Eclipse files not really part of Whizzy project
+.settings/
+.project
+.pydevproject
 
 # Python Stuff
 #
