@@ -24,7 +24,11 @@
 # As of May 2017, this project is hosted at https://github.com/robzed/Whizzy_Robot
 # 
 import sys
-import gopigo
+try:
+    import gopigo
+except ImportError:
+    from test_stubs import gopigo_stub as gopigo
+
 import atexit
 import whizzy_basic_hardware as hw
 

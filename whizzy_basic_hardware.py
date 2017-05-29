@@ -24,10 +24,17 @@
 #
 # As of May 2017, this project is hosted at https://github.com/robzed/Whizzy_Robot
 # 
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    from test_stubs import GPIO_stub as GPIO
+
 #import time
 from collections import deque
-import smbus
+try:
+    import smbus
+except ImportError:
+    from test_stubs import smbus_stub as smbus
 
 
 # hardware definitions
