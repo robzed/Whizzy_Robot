@@ -34,10 +34,12 @@ import whizzy_basic_hardware as hw
 
 atexit.register(gopigo.stop) # Stop the motors when the program is over.
 
+from line_detector import LineDetector
 
-    
 def whizzy_main():
-    pass
+    ld = LineDetector()
+    ld.start()
+    ld.capture()
 
 def cmd_main():
     print("Welcome to Whizzy")
