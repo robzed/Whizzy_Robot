@@ -38,8 +38,7 @@ from line_detector import LineDetector
 
 def whizzy_main():
     ld = LineDetector()
-    ld.start()
-    ld.capture()
+    ld.calibrate()
 
 def cmd_main():
     print("Welcome to Whizzy")

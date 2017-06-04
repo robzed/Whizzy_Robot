@@ -24,3 +24,12 @@ OUT = "output"
 
 def setup(pin, direction, pull_up_down=""):
     print("GPIO: setup pin", pin, direction, pull_up_down)
+
+
+def output(pin_def, state):
+    #print("Output", pin_def, state)
+    pass
+
+LOW = "0"
+HIGH = "1"
+
