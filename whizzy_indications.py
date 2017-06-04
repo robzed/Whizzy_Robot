@@ -17,3 +17,8 @@ def working(time_in_seconds):
         time_in_seconds -= 0.1        
     
     hw.buzzer_off()
+
+def warning(time_in_seconds):
+    hw.buzzer_on()
+    time.sleep(time_in_seconds)
+    hw.buzzer_off()

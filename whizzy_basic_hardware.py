@@ -71,6 +71,7 @@ def setup_headlights():
     _bus.write_byte_data(0x70,0x07,0x32)
     
 def buzzer_on():
+    #print('\a')
     GPIO.output(Buzzer_Pin, GPIO.HIGH)
     
 def buzzer_off():

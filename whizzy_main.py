@@ -35,11 +35,26 @@ import whizzy_basic_hardware as hw
 atexit.register(gopigo.stop) # Stop the motors when the program is over.
 
 from line_detector import LineDetector
+#import whizzy_indications as indications
+import time
 
 def whizzy_main():
     ld = LineDetector()
     ld.calibrate()
-
+    if ld.failed():
+        print("Camera Calibration Failed")
+    else:
+        try:
+            start = time.perf_counter()
+            ld.capture()
+            print("Cap=%.1f ms" % (1000 * (time.perf_counter() - start)))
+            start = time.perf_counter()
+            ld.line_position()
+            print("Process=%.1f ms" % (1000 * (time.perf_counter() - start)))
+        finally:
+            ld.close()
+        
+    
 def cmd_main():
     print("Welcome to Whizzy")
     hw.setup_hardware()
