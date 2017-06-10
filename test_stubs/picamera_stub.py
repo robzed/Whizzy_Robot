@@ -20,9 +20,9 @@ class RawImage():
                 header = f.read(6)
                 rgb_data = f.read()
     
-            (self.height, self.width, self.depth) = struct.unpack(">HHH", header)
+            (self.width, self.height, self.depth) = struct.unpack(">HHH", header)
             #rgb_iterator = struct.iter_unpack('BBB', data)
-            if self.height != 320 or self.width != 240 or self.depth != 24:
+            if self.height != 240 or self.width != 320 or self.depth != 24:
                 print("Wrong sized RAW image")
                 print(self.height, self.width, self.depth)
                 sys.exit(1)
