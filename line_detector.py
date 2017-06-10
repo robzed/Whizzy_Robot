@@ -93,9 +93,28 @@ class LineDetector():
                 test_image[i] = 255
         self.save_image("level_based_output.bmp", test_image)
 
+    def create_test_image2(self, mid_point, selected_line):
+        test_image = bytearray(self.image_height * self.image_width * 3)
+        for i in range(self.image_height * self.image_width):
+            if self.buf[i] > mid_point:
+                test_image[i*3] = 0
+                test_image[i*3+1] = 0
+                test_image[i*3+2] = 0
+            else:
+                test_image[i*3] = 120
+                test_image[i*3+1] = 120
+                test_image[i*3+2] = 120
+        selected_line *= 3 * self.image_width
+        for i in range(self.image_width):
+            test_image[selected_line + i*3] *= 2
+            test_image[selected_line + i*3+1] *= 2
+            test_image[selected_line + i*3+2] *= 2            
+            
+        self.save_image("level_based_output_with_line.bmp", test_image, bpp=24)
+
         
     def calibrate_scan_line(self, line):
-        line_start = line * self.image_height
+        line_start = line * self.image_width
         line_data = self.buf[line_start : (line_start+self.image_width)]
 
         low = min(line_data)
@@ -106,12 +125,21 @@ class LineDetector():
             self.failed_flag = True
             return
         
+        self.high_low_diff = high - low
         mid = ((high - low) // 2) + low
+        self.mid = mid
         
+        #print line data for analysis
         #for i in line_data:
         #    print(i, end=',')
+        #
+        # save images for examination
         #self.create_test_image(mid)
+        #self.create_test_image2(mid, line)
         
+        # validate that the mid is reasoanble for the whole line
+        # calibrate is between start and end markers, which
+        # means center line should be the only thing there
         stage = 0
         for i in line_data:
             if stage == 0:
@@ -131,6 +159,7 @@ class LineDetector():
             self.failed_flag = True
             return
 
+        # set up translation array
         in_ = bytearray(256)
         out = bytearray(256)
         for i in range(0, mid):
@@ -138,9 +167,10 @@ class LineDetector():
             out[i] = 0
         for i in range(mid, 256):
             in_[i] = i
-            out[i] = 0
+            out[i] = 1
         self.t = bytearray.maketrans(in_, out)
         
+        # confirm that is ok for the current line
         x = line_data.translate(self.t)
         start = x.find(1)
         if start == -1:
