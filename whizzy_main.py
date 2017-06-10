@@ -57,7 +57,7 @@ def whizzy_main():
             except LostLineException:
                 print("Not found")
             finally:
-                ld.close()
+                ld.stop()
         
     
 def cmd_main():
