@@ -5,21 +5,62 @@ Created on 4 Jun 2017
 '''
 import struct
 import sys
+import os
 
 class RawImage():
     # for test purposes we convert jpeg images snapped with the camera into raw image sized
     # 320x240x24(RGB) with a 6 byte header in order to test processing.
     def __init__(self, filename):
-        # assume w16, h16, d16, RGB24 * w * h
-        with open(filename, 'rb') as f:
-            header = f.read(6)
-            rgb_data = f.read()
+        _, file_extension = os.path.splitext(filename)
+        
+        if file_extension == '.raw':
+            # assume w16, h16, d16, RGB24 * w * h
+            with open(filename, 'rb') as f:
+                header = f.read(6)
+                rgb_data = f.read()
+    
+            (self.height, self.width, self.depth) = struct.unpack(">HHH", header)
+            #rgb_iterator = struct.iter_unpack('BBB', data)
+            if self.height != 320 or self.width != 240 or self.depth != 24:
+                print("Wrong sized RAW image")
+                print(self.height, self.width, self.depth)
+                sys.exit(1)
 
-        (self.height, self.width, self.depth) = struct.unpack(">HHH", header)
-        #rgb_iterator = struct.iter_unpack('BBB', data)
-        if self.height != 320 or self.width != 240 or self.depth != 24:
-            print("Wrong sized RAW image")
-            print(self.height, self.width, self.depth)
+        #=======================================================================
+        # elif file_extension == '.bmp':
+        #     # very naive bitmap reader ... easily broken
+        #     with open(filename, 'rb') as f:
+        #         fileheader = f.read(14)
+        #         infoheader= f.read(40)
+        #         bgra_data = f.read()
+        #     
+        #     (type, fsize, reserved, offset) = struct.unpack('<2sLLL', fileheader)
+        #     (hsize, w, h, planes, bpp, comp, isize, xppm, yppm, cct, icc) = struct.unpack('<LLLHHLLLLLL', infoheader)
+        #     
+        #     if type != b'BM':
+        #         print("Header not BM")
+        #         sys.exit(1)
+        #     if offset != 14+40 or fsize != 14+40+len(rgb_data):
+        #         print("Header sizes/offset unexpected")
+        #         sys.exit(1)
+        #     if hsize != 40:
+        #         print("Header sizes unexpected")
+        #         sys.exit(1)
+        #     if self.h != 320 or self.w != 240 or self.bpp != 32:
+        #         print("Wrong sized RAW image")
+        #         print(self.height, self.width, self.depth)
+        #         sys.exit(1)
+        #     
+        #     #need to resize bits per pixel and format from 
+        #     #need to reverse lines
+        #=======================================================================
+        else:
+            print("Unknown file extension", filename)
+            sys.exit(1)
+            
+        for x in range(self.width // 2):
+            for y in range(self.height // 3):
+                rgb_data[3 * (x + ((y * self.width)))] = 200
         
         self.YUV420_data = self.Bitmap_to_Yuv420p(rgb_data, self.width, self.height)
 

@@ -14,6 +14,7 @@ except ImportError:
     from test_stubs.picamera_stub import PiCamera_stub as PiCamera
 
 import whizzy_indications as indications
+import struct
 
 class LostLineException(Exception):
     pass
@@ -31,14 +32,63 @@ class LineDetector():
         self.started = False
         self.failed_flag = False
         
+        #test_img = bytearray(self.image_height*self.image_width)
+        #for x in range(self.image_width // 2):
+        #    for y in range(self.image_height // 3):
+        #        test_img[x + ((y * self.image_width))] = 200
+        #
+        #self.save_image("test.bmp", test_img)
+
     def failed(self):
         return self.failed_flag
 
+    def save_image(self, filename, img_data, bpp=8):
+        # output a bitmap file, because it's pretty simple
+        #filename = "output.bmp"
+        
+        with open(filename, 'wb') as f:
+            f.write(b'BM')
+            # BITMAPFILEHEADER
+            img_size = 4 * self.image_width * self.image_height
+            f.write(struct.pack( '<LLL', img_size + 14 + 40, 0, 14+40 ))
+            # BITMAPINFOHEADER
+            f.write(struct.pack('<LLLHHLLLLLL', 40, 
+                                self.image_width, self.image_height,
+                                1, # planes
+                                32, # bits per pixel - avoid padding rows to 4 bytes
+                                0, # compression 
+                                0, #img_size, # image size, could be 0 for BI_RGB bitmapss
+                                0, #2835, # x pixels per meter, =72DPI, could be zero
+                                0, #2835, # y pixels per meter
+                                0, # colours in colour table
+                                0 # important colour count
+                                ))
+            
+            if bpp != 24:
+                # b,g,r,a
+                # write bottom row to top
+                for y in range(self.image_height-1, -1, -1):
+                    line = self.image_width * y
+                    for x in range(self.image_width):
+                        data = img_data[x+line]
+                        f.write(struct.pack('BBBB', data, data, data, 255))
+            else:
+                # b,g,r,a
+                # write bottom row to top
+                for y in range(self.image_height-1, -1, -1):
+                    line = self.image_width * 3 * y
+                    for x in range(self.image_width):
+                        r = img_data[x * 3 + line]
+                        g = img_data[x * 3 + line + 1]
+                        b = img_data[x * 3 + line + 2]
+                        f.write(struct.pack('BBBB', b, g, r, 255))
+
+        
     def start(self):
         self.image_width = 320  # width should be /32
         self.image_height = 240 # height should be /16
         self.h_center = self.image_width // 2        # adjust this to adjust center of image
-        self.line_to_process = self.image_height // 2
+        self.line_to_process = 90 # self.image_height // 2
     
         camera = PiCamera()
         #camera.resolution = (1024, 768)
@@ -61,7 +111,7 @@ class LineDetector():
         #output = np.empty((240, 320, 3), dtype=np.uint8)
         self.camera.capture(self.buf, 'yuv', resize=(self.image_width, self.image_height))
         #print("Time = %.1f ms" % (1000 * (time.perf_counter() - start)))
-    
+        self.save_image("yuv_convert.bmp", self.buf)
     def calibrate(self):
         if not self.started:
             self.start()
@@ -70,6 +120,16 @@ class LineDetector():
         self.capture()
         self.calibrate_scan_line(self.line_to_process)
 
+    def create_test_image(self, mid_point):
+        test_image = bytearray(self.image_height * self.image_width)
+        for i in range(self.image_height * self.image_width):
+            if self.buf[i] > mid_point:
+                test_image[i] = 0
+            else:
+                test_image[i] = 255
+        self.save_image("output.bmp", test_image)
+
+        
     def calibrate_scan_line(self, line):
         line_start = line * self.image_height
         line_data = self.buf[line_start : (line_start+self.image_width)]
@@ -83,6 +143,11 @@ class LineDetector():
             return
         
         mid = ((high - low) // 2) + low
+        
+        #for i in line_data:
+        #    print(i, end=',')
+        self.create_test_image(mid)
+        
         stage = 0
         for i in line_data:
             if stage == 0:
@@ -95,7 +160,7 @@ class LineDetector():
                 if i >= mid:
                     stage = 3
                     break
-        
+
         if stage != 2:
             print("No clear line detected based on mid-point")
             indications.warning(2)
