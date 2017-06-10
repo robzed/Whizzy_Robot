@@ -6,6 +6,7 @@ Created on 4 Jun 2017
 import struct
 import sys
 import os
+from test_stubs.image_services import save_image
 
 class RawImage():
     # for test purposes we convert jpeg images snapped with the camera into raw image sized
@@ -58,9 +59,11 @@ class RawImage():
             print("Unknown file extension", filename)
             sys.exit(1)
             
-        for x in range(self.width // 2):
-            for y in range(self.height // 3):
-                rgb_data[3 * (x + ((y * self.width)))] = 200
+        #for x in range(self.width // 2):
+        #    for y in range(self.height // 3):
+        #        rgb_data[3 * (x + ((y * self.width)))] = 200
+        
+        save_image("image_as_loaded.bmp", rgb_data, self.depth, self.width, self.height)
         
         self.YUV420_data = self.Bitmap_to_Yuv420p(rgb_data, self.width, self.height)
 
@@ -142,9 +145,7 @@ class PiCamera_stub():
         
         '''
         self.resolution = (1024, 768)
-        self.test_image = RawImage("cam3.raw")
-        #x = RawImage("/Users/rob/Current_Projects/GoPiGo/Whizzy_Robot/caw3.raw")
-        pass
+        self.test_image = RawImage("cam3i.raw")
     
     def start_preview(self, **options):
         pass
