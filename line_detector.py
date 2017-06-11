@@ -38,7 +38,7 @@ class LineDetector():
         #    for y in range(self.image_height // 3):
         #        test_img[x + ((y * self.image_width))] = 200
         #
-        #self.save_image("test.bmp", test_img)
+        #self.save_image("_test.bmp", test_img)
 
     def failed(self):
         return self.failed_flag
@@ -75,7 +75,7 @@ class LineDetector():
         #output = np.empty((240, 320, 3), dtype=np.uint8)
         self.camera.capture(self.buf, 'yuv', resize=(self.image_width, self.image_height))
         #print("Time = %.1f ms" % (1000 * (time.perf_counter() - start)))
-        #self.save_image("yuv_convert.bmp", self.buf)
+        #self.save_image("_yuv_convert.bmp", self.buf)
     def calibrate(self):
         if not self.started:
             self.start()
@@ -91,7 +91,7 @@ class LineDetector():
                 test_image[i] = 0
             else:
                 test_image[i] = 255
-        self.save_image("level_based_output.bmp", test_image)
+        self.save_image("_level_based_output.bmp", test_image)
 
     def create_test_image2(self, mid_point, selected_line):
         test_image = bytearray(self.image_height * self.image_width * 3)
@@ -110,7 +110,7 @@ class LineDetector():
             test_image[selected_line + i*3+1] *= 2
             test_image[selected_line + i*3+2] *= 2            
             
-        self.save_image("level_based_output_with_line.bmp", test_image, bpp=24)
+        self.save_image("_level_based_output_with_line.bmp", test_image, bpp=24)
 
         
     def calibrate_scan_line(self, line):

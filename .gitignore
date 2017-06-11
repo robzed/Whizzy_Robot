@@ -1,3 +1,6 @@
+# Files that are just temp debugging
+_*.bmp
+
 # General computer stuff
 .DS_Store
 

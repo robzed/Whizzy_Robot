@@ -63,7 +63,7 @@ class RawImage():
         #    for y in range(self.height // 3):
         #        rgb_data[3 * (x + ((y * self.width)))] = 200
         
-        save_image("image_as_loaded.bmp", rgb_data, self.depth, self.width, self.height)
+        save_image("_image_as_loaded.bmp", rgb_data, self.depth, self.width, self.height)
         
         self.YUV420_data = self.Bitmap_to_Yuv420p(rgb_data, self.width, self.height)
 
