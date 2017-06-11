@@ -47,6 +47,7 @@ import whizzy_indications as indications
 #  * Shutdown
 
 def whizzy_main():
+    hw.turn_on_white_headlights()
     ld = LineDetector()
     ld.calibrate()
     if ld.failed():
@@ -55,7 +56,6 @@ def whizzy_main():
     else:
         if True:
         #while hw.read_switch(hw.Switch1_Pin):
-            hw.turn_on_white_headlights()
             try:
                 start = time.perf_counter()
                 ld.capture()
@@ -72,9 +72,9 @@ def whizzy_main():
             #    print("Not found")
             finally:
                 ld.stop()
-                hw.turn_off_headlights()
         
         indications.finished()
+    hw.turn_off_headlights()
     print("Finished")
     
 def cmd_main():
