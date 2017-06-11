@@ -38,12 +38,14 @@ from line_detector import LineDetector
 #from line_detector import LostLineException
 #import whizzy_indications as indications
 import time
+import whizzy_indications as indications
 
 def whizzy_main():
     ld = LineDetector()
     ld.calibrate()
     if ld.failed():
         print("Camera Calibration Failed")
+        indications.warning(2)
     else:
         while True:
             try:
@@ -57,11 +59,13 @@ def whizzy_main():
                 print("Process=%.1f ms" % (1000 * (time.perf_counter() - start)))
                 print("Pos =", pos)
                 print(turn_marker, start_stop_marker)
+                time.sleep(0.2)
             #except LostLineException:
             #    print("Not found")
             finally:
                 ld.stop()
         
+        indications.finished()
     
 def cmd_main():
     print("Welcome to Whizzy")

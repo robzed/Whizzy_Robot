@@ -22,3 +22,10 @@ def warning(time_in_seconds):
     hw.buzzer_on()
     time.sleep(time_in_seconds)
     hw.buzzer_off()
+
+def finished():    
+    for i in range(3):
+        time.sleep(0.5)
+        hw.buzzer_on()
+        time.sleep(0.5)
+        hw.buzzer_off()

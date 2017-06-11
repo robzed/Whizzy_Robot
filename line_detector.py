@@ -166,7 +166,6 @@ class LineDetector():
         high = max(line_data)
         if high-low < 10:
             print("Not enough contrast to calibrate")
-            indications.warning(2)
             self.failed_flag = True
             return
         
@@ -200,7 +199,6 @@ class LineDetector():
 
         if stage != 2:
             print("No clear line detected based on mid-point")
-            indications.warning(2)
             self.failed_flag = True
             return
 
@@ -220,25 +218,21 @@ class LineDetector():
         start = x.find(1)
         if start == -1:
             print("Couldn't find start of line")
-            indications.warning(2)
             self.failed_flag = True
             return
         
         end = x.find(0, start)
         if end == -1:
             print("Couldn't find end of line")
-            indications.warning(2)
             self.failed_flag = True
             return
         
         if end-start < self.minimum_width_of_follow_line_to_accept_during_calibrate:
             print("Line too narrow to be taken seriously during calibrate")
-            indications.warning(2)
             self.failed_flag = True
             return
         if end-start > self.maximum_width_of_follow_line_to_accept_during_calibrate:
             print("Line too wide to be taken seriously during calibrate")
-            indications.warning(2)
             self.failed_flag = True
             return
 
