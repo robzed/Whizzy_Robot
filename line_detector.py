@@ -11,6 +11,7 @@ Created on 3 Jun 2017
 try:
     from picamera import PiCamera
 except ImportError:
+    print("WARNING: importing stub PiCamera")
     from test_stubs.picamera_stub import PiCamera_stub as PiCamera
 
 from test_stubs.image_services import save_image

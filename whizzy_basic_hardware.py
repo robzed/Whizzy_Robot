@@ -27,6 +27,7 @@
 try:
     import RPi.GPIO as GPIO
 except ImportError:
+    print("WARNING: Importing test stub for RPi.GPIO")
     from test_stubs import GPIO_stub as GPIO
 
 #import time
@@ -34,6 +35,7 @@ from collections import deque
 try:
     import smbus
 except ImportError:
+    print("WARNING: Importing test stub for smbus (camera light)")
     from test_stubs import smbus_stub as smbus
 
 

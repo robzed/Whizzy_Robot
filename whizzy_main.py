@@ -27,6 +27,7 @@ import sys
 try:
     import gopigo
 except ImportError:
+    print("WARNING: importing gopigo_stub")
     from test_stubs import gopigo_stub as gopigo
 
 import atexit
