@@ -47,16 +47,17 @@ import whizzy_indications as indications
 #  * Shutdown
 
 def whizzy_main():
-    #hw.turn_on_white_headlights()
+    hw.turn_on_white_headlights()
     ld = LineDetector()
-    ld.calibrate()
-    if ld.failed():
-        print("Camera Calibration Failed")
-        indications.warning(2)
-    else:
-        if True:
-        #while hw.read_switch(hw.Switch1_Pin):
-            try:
+    ld.start()
+    try:
+        ld.calibrate()
+        if ld.failed():
+            print("Camera Calibration Failed")
+            indications.warning(2)
+        else:
+            #if True:
+            while hw.read_switch(hw.Switch1_Pin):
                 start = time.perf_counter()
                 ld.capture()
                 print("Cap=%.1f ms" % (1000 * (time.perf_counter() - start)))
@@ -67,13 +68,13 @@ def whizzy_main():
                 print("Process=%.1f ms" % (1000 * (time.perf_counter() - start)))
                 print("Pos =", pos)
                 print(turn_marker, start_stop_marker)
-                time.sleep(0.2)
+                time.sleep(0.5)
             #except LostLineException:
             #    print("Not found")
-            finally:
-                ld.stop()
-        
         indications.finished()
+    finally:
+        ld.stop()
+        
     hw.turn_off_headlights()
     print("Finished")
     
