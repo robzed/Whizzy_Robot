@@ -94,7 +94,7 @@ class LineDetector():
         #output = np.empty((240, 320, 3), dtype=np.uint8)
         self.camera.capture(self.buf, 'yuv', resize=(self.image_width, self.image_height))
         #print("Time = %.1f ms" % (1000 * (time.perf_counter() - start)))
-        #self.save_image("_yuv_convert.bmp", self.buf)
+        self.save_image("_luminance.bmp", self.buf)
         
     def calibrate(self):
         if not self.started:
@@ -180,7 +180,7 @@ class LineDetector():
         #
         # save images for examination
         #self.create_test_image(mid)
-        self.create_test_image2(mid, line, "_level_based_output_with_line.bmp")
+        #self.create_test_image2(mid, line, "_level_based_output_with_line.bmp")
         
         # validate that the mid is reasoanble for the whole line
         # calibrate is between start and end markers, which

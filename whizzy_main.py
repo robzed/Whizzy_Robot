@@ -47,7 +47,7 @@ import whizzy_indications as indications
 #  * Shutdown
 
 def whizzy_main():
-    hw.turn_on_white_headlights()
+    #hw.turn_on_white_headlights()
     ld = LineDetector()
     ld.calibrate()
     if ld.failed():
