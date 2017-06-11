@@ -98,6 +98,8 @@ def cmd_main():
         else:
             print("Unknown command line argument")
             sys.exit(-201)
+
+        return
         
     whizzy_main()
 

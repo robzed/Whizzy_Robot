@@ -48,7 +48,7 @@ rev = GPIO.RPI_REVISION
 if rev == 2 or rev == 3:
     _bus = smbus.SMBus(1)
 else:
-    _bus = smbus.SMBus(0)
+    _bus = smbus.SMBus(1)
 
 def turn_on_white_headlights():
     # all white LEDs on:
