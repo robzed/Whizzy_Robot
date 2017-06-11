@@ -53,7 +53,8 @@ def whizzy_main():
         print("Camera Calibration Failed")
         indications.warning(2)
     else:
-        while hw.read_switch(hw.Switch1_Pin):
+        if True:
+        #while hw.read_switch(hw.Switch1_Pin):
             try:
                 start = time.perf_counter()
                 ld.capture()
