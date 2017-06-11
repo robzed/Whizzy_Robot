@@ -35,7 +35,7 @@ import whizzy_basic_hardware as hw
 atexit.register(gopigo.stop) # Stop the motors when the program is over.
 
 from line_detector import LineDetector
-from line_detector import LostLineException
+#from line_detector import LostLineException
 #import whizzy_indications as indications
 import time
 
@@ -52,10 +52,13 @@ def whizzy_main():
                 print("Cap=%.1f ms" % (1000 * (time.perf_counter() - start)))
                 start = time.perf_counter()
                 pos = ld.line_position()
+                if pos is not None:
+                    turn_marker, start_stop_marker = ld.markers_present(pos)
                 print("Process=%.1f ms" % (1000 * (time.perf_counter() - start)))
                 print("Pos =", pos)
-            except LostLineException:
-                print("Not found")
+                print(turn_marker, start_stop_marker)
+            #except LostLineException:
+            #    print("Not found")
             finally:
                 ld.stop()
         

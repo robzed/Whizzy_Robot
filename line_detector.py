@@ -61,7 +61,7 @@ class LineDetector():
         track_line_width = int(self.image_width / 320 * 42)    # pixels (in center of image!) @ 320 pixels width
         line_follower_marker_width_in_mm = 19 # mm
         pixels_per_mm = track_line_width / line_follower_marker_width_in_mm      # pixels per mm
-        self.marker_scan_offset_from_track = int(55 * pixels_per_mm) # 19mm/2 + 40mm before start + 80mm for marker long
+        self.marker_scan_offset_from_track = int(65 * pixels_per_mm) # 19mm/2 + 40mm before start + 80mm for marker long
         #end start marker to turn marker, max distance = 19+40+80+40+80 = 187mm, or 413 pixles (at 320 pixels width image)
         #ignoring distance change from camera to board
 
@@ -112,7 +112,7 @@ class LineDetector():
                 test_image[i] = 255
         self.save_image("_level_based_output.bmp", test_image)
 
-    def create_test_image2(self, mid_point, selected_line):
+    def create_test_image2(self, mid_point, selected_line, name, left=None, right=None, found_pos=None):
         test_image = bytearray(self.image_height * self.image_width * 3)
         for i in range(self.image_height * self.image_width):
             if self.buf[i] > mid_point:
@@ -129,18 +129,33 @@ class LineDetector():
             test_image[selected_line + i*3+1] *= 2
             test_image[selected_line + i*3+2] *= 2                    
         
-        lcolumn = 3 * (self.image_width//2 - self.marker_scan_offset_from_track)
-        rcolumn = 3 * (self.image_width//2 + self.marker_scan_offset_from_track)
+        if left is None:
+            left = (self.image_width//2 - self.marker_scan_offset_from_track)
+        lcolumn = 3 * left
+        if right is None:
+            right = (self.image_width//2 + self.marker_scan_offset_from_track)        
+        rcolumn = 3 * right
         for h in range(self.image_height):
             line = h * 3 * self.image_width
-            test_image[line + rcolumn] = 0
-            test_image[line + rcolumn+1] = 0
-            test_image[line + rcolumn+2] = 255                    
-            test_image[line + lcolumn] = 0
-            test_image[line + lcolumn+1] = 0
-            test_image[line + lcolumn+2] = 255                    
+            if right > 0 and right < self.image_width:
+                test_image[line + rcolumn] = 255
+                test_image[line + rcolumn+1] = 0
+                test_image[line + rcolumn+2] = 0
+            if left >= 0 and left < self.image_width:
+                test_image[line + lcolumn] = 0
+                test_image[line + lcolumn+1] = 0
+                test_image[line + lcolumn+2] = 255
+                
+        if found_pos  is not None:
+            found_pos *= 3
+            for h in range(self.image_height):
+                line = h * 3 * self.image_width
+                test_image[line + found_pos] = 0
+                test_image[line + found_pos+1] = 255
+                test_image[line + found_pos+2] = 0
             
-        self.save_image("_level_based_output_with_line.bmp", test_image, bpp=24)
+            
+        self.save_image(name, test_image, bpp=24)
 
         
     def calibrate_scan_line(self, line):
@@ -165,7 +180,7 @@ class LineDetector():
         #
         # save images for examination
         #self.create_test_image(mid)
-        self.create_test_image2(mid, line)
+        self.create_test_image2(mid, line, "_level_based_output_with_line.bmp")
         
         # validate that the mid is reasoanble for the whole line
         # calibrate is between start and end markers, which
@@ -230,14 +245,64 @@ class LineDetector():
         self.follow_line_width = end-start
         self.follow_line_width_min = int(0.66 * (end-start))
         self.follow_line_width_max = int(1.5 * (end-start))
-        print("Line width = ", end-start, self.follow_line_width_min, self.follow_line_width_max)
+        print("Line width (measured, min,max) = ", end-start, self.follow_line_width_min, self.follow_line_width_max)
         
         #self.half_width = (end-start) // 2    
 
-    def markers_present(self, line_pos):
-        pass
+    def markers_present(self, line_pos):        
+        line_pos = int((line_pos * self.h_center) + self.h_center)       # make absolute, not relative to center
         
+        # At the moment markers use vertical lines. But that is wrong - they 
+        # should start wide and slope in as a straight line - they are 
+        # perspective lines.
+        # This, of course, assumes a straight track, which it's not. 
+
+        # Relative to the center sounded logical, but this is not great either.
+        #left = line_pos - self.marker_scan_offset_from_track
+        #right = line_pos + self.marker_scan_offset_from_track
         
+        # always make it at the edge
+        left = 15
+        right = self.image_width - 15
+        self.create_test_image2(self.mid, self.line_to_process, "_level_based_output_with_line2.bmp", left, right, line_pos)
+        marker_left = False
+        marker_right = False
+        img_size = self.image_width*self.image_height
+        # make sure they are one pixel in from edge, at least
+        if left >= 1:
+            left_column_data = self.buf[left:img_size:self.image_width]
+            # translate based on calibration
+            x = left_column_data.translate(self.t)
+            end = 0
+            while True:
+                start = x.find(1, end)
+                if start == -1:
+                    break
+                end = x.find(0, start)
+                if end == -1:
+                    end = self.image_height # no end means off bottom
+                if end-start > 10:  # number of lines to succeed
+                    marker_left = True
+                    break
+
+        if right < (self.image_width-1):
+            right_column_data = self.buf[right:img_size:self.image_width]
+            # translate based on calibration
+            x = right_column_data.translate(self.t)
+            end = 0
+            while True:
+                start = x.find(1, end)
+                if start == -1:
+                    break
+                end = x.find(0, start)
+                if end == -1:
+                    end = self.image_height # no end means off bottom
+                if end-start > 10:  # number of lines to succeed
+                    marker_right = True
+                    break
+        
+        return marker_left, marker_right
+    
     #def line_position_worker_midlevel(self):
     def line_position(self):
         # Types of horizontal scan line result:
@@ -312,7 +377,7 @@ class LineDetector():
 
         w = markers[preferred+1] - markers[preferred]
         if w >= self.follow_line_width_min and w <= self.follow_line_width_max:
-            return markers[preferred] + w//2 - self.h_center
+            return (markers[preferred] + w//2 - self.h_center) / self.h_center
         
         if count < 4:
             return None
@@ -320,7 +385,7 @@ class LineDetector():
         nextw = 2 - preferred
         w = markers[nextw+1] - markers[nextw]
         if w >= self.follow_line_width_min and w <= self.follow_line_width_max:
-            return markers[nextw] + w//2 - self.h_center
+            return (markers[nextw] + w//2 - self.h_center) / self.h_center
         
         if count < 6:
             return None
@@ -328,7 +393,7 @@ class LineDetector():
         nextw = 4
         w = markers[nextw+1] - markers[nextw]
         if w >= self.follow_line_width_min and w <= self.follow_line_width_max:
-            return markers[nextw] + w//2 - self.h_center
+            return (markers[nextw] + w//2 - self.h_center) / self.h_center
     
         return None
         
