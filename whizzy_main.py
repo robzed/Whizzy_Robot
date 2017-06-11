@@ -40,6 +40,11 @@ from line_detector import LineDetector
 import time
 import whizzy_indications as indications
 
+# Switches:
+#  * start / stop
+#  * line followers / drag race
+#  * Shutdown
+
 def whizzy_main():
     ld = LineDetector()
     ld.calibrate()
@@ -47,7 +52,7 @@ def whizzy_main():
         print("Camera Calibration Failed")
         indications.warning(2)
     else:
-        while True:
+        while hw.read_switch(hw.Switch1_Pin):
             try:
                 start = time.perf_counter()
                 ld.capture()
@@ -66,6 +71,7 @@ def whizzy_main():
                 ld.stop()
         
         indications.finished()
+    print("Finished")
     
 def cmd_main():
     print("Welcome to Whizzy")
