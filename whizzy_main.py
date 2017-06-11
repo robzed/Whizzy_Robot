@@ -60,12 +60,14 @@ def whizzy_main():
             while hw.read_switch(hw.Switch1_Pin):
                 start = time.perf_counter()
                 ld.capture()
-                print("Cap=%.1f ms" % (1000 * (time.perf_counter() - start)))
+                end = time.perf_counter()
+                print("Cap=%.1f ms" % (1000 * (end - start)))
                 start = time.perf_counter()
                 pos = ld.line_position()
                 if pos is not None:
                     turn_marker, start_stop_marker = ld.markers_present(pos)
-                print("Process=%.1f ms" % (1000 * (time.perf_counter() - start)))
+                end = time.perf_counter()
+                print("Process=%.1f ms" % (1000 * (end - start)))
                 print("Pos =", pos)
                 print(turn_marker, start_stop_marker)
                 time.sleep(0.5)
