@@ -11,6 +11,7 @@ def save_image(filename, img_data, bpp, width, height):
     #filename = "output%s.bmp"
     
     # allow an incrementing directory count filename
+    # NOTES: race conditions exist for multiple instances, security implications? 
     if '%s' in filename:
         i = 0
         while os.path.exists(filename % i):
