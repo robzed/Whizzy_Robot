@@ -4,11 +4,20 @@ Created on 10 Jun 2017
 @author: rob
 '''
 import struct
+import os
 
 def save_image(filename, img_data, bpp, width, height):
     # output a bitmap file, because it's pretty simple
-    #filename = "output.bmp"
+    #filename = "output%s.bmp"
     
+    # allow an incrementing directory count filename
+    if '%s' in filename:
+        i = 0
+        while os.path.exists(filename % i):
+            i += 1
+        filename = filename % i
+
+    # now save the image as BMP
     with open(filename, 'wb') as f:
         f.write(b'BM')
         # BITMAPFILEHEADER
