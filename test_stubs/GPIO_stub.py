@@ -5,7 +5,7 @@ Created on 29 May 2017
 '''
 
 def input(pin):
-    print("GPIO: input", pin)
+    print("read GPIO: input", pin, "returning False")
     return False
 
 RPI_REVISION = 1

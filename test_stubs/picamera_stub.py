@@ -7,6 +7,23 @@ import struct
 import sys
 import os
 from test_stubs.image_services import save_image
+import time
+
+# see picamera/array.py for licensing on this function
+def raw_resolution(resolution, splitter=False):
+    """
+    Round a (width, height) tuple up to the nearest multiple of 32 horizontally
+    and 16 vertically (as this is what the Pi's camera module does for
+    unencoded output).
+    """
+    width, height = resolution
+    if splitter:
+        fwidth = (width + 15) & ~15
+    else:
+        fwidth = (width + 31) & ~31
+    fheight = (height + 15) & ~15
+    return fwidth, fheight
+
 
 class RawImage():
     # for test purposes we convert jpeg images snapped with the camera into raw image sized
@@ -160,6 +177,31 @@ class PiCamera_stub():
             sys.exit(1)
             
         output[:] = self.test_image.YUV420_data
+    
+    def start_recording(self, output, format=None, resize=None):
+        if resize[0] != 320 and resize[1] != 240:
+            print("unexpected resize")
+            sys.exit(1)
+        if format != "yuv":
+            print("Unexpected format")
+            sys.exit(1)
+            
+        self.output = output
+    
+    
+    def wait_recording(self, wait_time):  
+        # in the actual implementation, the output.write() is called
+        # from a background thread. In out case, we emulate this by calling
+        # it from a foreground thread periodically.
+        step_time = 1/self.framerate
+        while wait_time > 0:
+            time.sleep(step_time)
+            wait_time -= step_time
+            self.output.write(self.test_image.YUV420_data)
+        
+    def stop_recording(self):
+        pass
+    
     
     def capture_continuous(self, output, format=None, use_video_port=False, 
                            resize=None, splitter_port=0, burst=False, bayer=False, 

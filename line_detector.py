@@ -14,6 +14,12 @@ except ImportError:
     print("WARNING: importing stub PiCamera")
     from test_stubs.picamera_stub import PiCamera_stub as PiCamera
 
+try:
+    from picamera.array import raw_resolution
+except ImportError:
+    print("WARNING: importing stub PiCamera raw_resolution")
+    from test_stubs.picamera_stub import raw_resolution
+
 from test_stubs.image_services import save_image
 
 import whizzy_indications as indications
@@ -21,13 +27,44 @@ import whizzy_indications as indications
 class LostLineException(Exception):
     pass
 
+#
+# This does the processing as the images come in
+#
+class ImageProcessor():
+    def __init__(self, line_detector, camera, result_processor, size=None):
+        self.camera = camera
+        self.size = size
+        self.process = result_processor
+        self.error_logged = 0
+        self.ld = line_detector
+        
+    def write(self, data):
+        resolution = self.size or self.camera.resolution
+        #width, height = resolution
+        fwidth, fheight = raw_resolution(resolution)
+        y_len = fwidth * fheight
+        uv_len = (fwidth // 2) * (fheight // 2)
+        if len(data) != (y_len + 2 * uv_len):
+            if self.error_logged < 5:
+                print("Unexpected data size in ImageProcessor")
+                self.error_logged += 1
+            #raise PiCameraValueError('Incorrect buffer length for resolution %dx%d' % (width, height))
+        else:
+            # do stuff with data
+            self.ld.buf = data
+            pos = self.ld.line_position()
+            if pos is not None:
+                turn_marker, start_stop_marker = self.ld.markers_present(pos)
+                self.process(pos, turn_marker, start_stop_marker)
+        
+        return len(data)
+
 class LineDetector():
     '''
     classdocs
     '''
 
-
-    def __init__(self):
+    def __init__(self, period_time, continue_check_func, internal_func, analyze_func):
         '''
         Constructor
         '''
@@ -40,6 +77,10 @@ class LineDetector():
         #        test_img[x + ((y * self.image_width))] = 200
         #
         #self.save_image("_test.bmp", test_img)
+        self.period = period_time
+        self.continue_check_func = continue_check_func
+        self.interval_f = internal_func
+        self.process_result = analyze_func
 
     def failed(self):
         return self.failed_flag
@@ -47,8 +88,7 @@ class LineDetector():
     def save_image(self, filename, img_data, bpp=8):
         save_image(filename, img_data, bpp, self.image_width, self.image_height)
     
-
-        
+    
     def start(self):
         # need to check field of view isn't compromised by rescale
         self.image_width = 320  # width should be /32
@@ -75,33 +115,49 @@ class LineDetector():
 
         camera = PiCamera()
         #camera.resolution = (1024, 768)
-        camera.exposure_mode = 'sports'
+        camera.exposure_mode = 'sports' # 'sports' reduces motion blur by preferentially increasing gain rather than exposure time (i.e. line read-out time).
         camera.start_preview(alpha=128)
         # Need to allow camera warm-up time
         self.camera = camera
         # image data is YUV420, which is chroma data is /2 in both horizontal and vertical
         # i.e. 1 byte of u and 1 byte of v for every 4 (2x2 square) bytes
         # therefore size of array is w * h * 1.5 
-        self.buf = bytearray(int(self.image_height*self.image_width*1.5))
+        self.still_buf = bytearray(int(self.image_height*self.image_width*1.5))
         self.started = True
         
     def stop(self):
         self.camera.close()
         self.started = False
         
-    def capture(self):
+    def capture_one(self):
         #start = time.perf_counter()
         #output = np.empty((240, 320, 3), dtype=np.uint8)
+        self.buf = self.still_buf
         self.camera.capture(self.buf, 'yuv', resize=(self.image_width, self.image_height))
         #print("Time = %.1f ms" % (1000 * (time.perf_counter() - start)))
         #self.save_image("_luminance.bmp", self.buf)
+
+    def video_capture(self):
+        #camera.resolution = (640, 480)
+        self.camera.framerate = 30
+        ip = ImageProcessor(self, self.camera, self.process_result, size=(self.image_width, self.image_height))
+        self.camera.start_recording(ip, format='yuv', resize=(self.image_width, self.image_height))
+        while not self.continue_check_func():
+            # The write method is called from a background thread.
+            # We should do as little as possible in the main thread so that this thread can keep
+            # up with the 30fps. Therefore we do all processing on this 
+            # background thread.
+            self.camera.wait_recording(self.period)
+            self.interval_f()
+        self.camera.stop_recording()
+    
         
     def calibrate(self):
         if not self.started:
             self.start()
         
         indications.working(2)
-        self.capture()
+        self.capture_one()
         self.calibrate_scan_line(self.line_to_calibrate)
 
     def create_test_image(self, mid_point):
@@ -435,6 +491,8 @@ class LineDetector():
     
     
     def line_position_worker_step_change(self):
+        # not complete - will look for a step change in the values
+        # slower than transform, but maybe finds edges easier?
         line_start = self.line_to_process*self.image_width
         line_data = self.buf[line_start:line_start+self.image_width]
         

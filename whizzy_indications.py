@@ -29,3 +29,16 @@ def finished():
         hw.buzzer_on()
         time.sleep(0.5)
         hw.buzzer_off()
+
+def awake():
+    hw.buzzer_on()
+    time.sleep(0.01)
+    hw.buzzer_off()
+
+def quitting():
+    for _ in range(10):
+        hw.buzzer_on()
+        time.sleep(0.05)
+        hw.buzzer_off()
+        time.sleep(0.05)
+    
