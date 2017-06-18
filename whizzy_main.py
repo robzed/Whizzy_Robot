@@ -47,7 +47,7 @@ import whizzy_indications as indications
 
 
 
-
+periodic_interval = 0.25
 frame_count = 0
 # Switches:
 #  * start / stop
@@ -72,6 +72,7 @@ def periodic_process():
     global last_frame_count
     if last_frame_count == frame_count:
         stop_line_follow = True
+        print("No video received for", periodic_interval)
         gopigo.stop()
     last_frame_count = frame_count
 
@@ -152,7 +153,7 @@ def analysis_result(position, turn_marker, start_stop_marker):
     
 def video_frame_control():
     hw.turn_on_white_headlights()
-    ld = LineDetector(0.25, continue_check, periodic_process, analysis_result)
+    ld = LineDetector(periodic_interval, continue_check, periodic_process, analysis_result)
     
     ld.start()
     try:
