@@ -142,7 +142,7 @@ class LineDetector():
         self.camera.framerate = 30
         ip = ImageProcessor(self, self.camera, self.process_result, size=(self.image_width, self.image_height))
         self.camera.start_recording(ip, format='yuv', resize=(self.image_width, self.image_height))
-        while not self.continue_check_func():
+        while self.continue_check_func():
             # The write method is called from a background thread.
             # We should do as little as possible in the main thread so that this thread can keep
             # up with the 30fps. Therefore we do all processing on this 
