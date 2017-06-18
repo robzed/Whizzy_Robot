@@ -170,7 +170,7 @@ def video_frame_control():
             end = time.perf_counter()
             print("Total Capture time =%.2s" % (end - start))
             print("Total frame = %i" % frame_count)
-            print("Frames per second = %.2f" % frame_count / (end - start))
+            print("Frames per second = %.2f" % (frame_count / (end - start)))
     finally:
         ld.stop()        
     indications.finished()
