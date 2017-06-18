@@ -59,6 +59,8 @@ drag_switch = hw.Switch2_Pin        # opposite of drag is follow
 shutdown_switch = hw.Switch3_Pin    # opposite of shutdown is run
 last_frame_count = 0
 stop_line_follow = False
+frame_lost_count_max = int(10 * (1/periodic_interval))
+frame_lost_count = frame_lost_count_max
 
 def continue_check():
     # @todo: check battery?
@@ -70,10 +72,20 @@ def periodic_process():
     # if we haven't aquired the line recently, stop
     global frame_count
     global last_frame_count
+    global frame_lost_count
     if last_frame_count == frame_count:
-        stop_line_follow = True
         print("No video received for", periodic_interval)
         gopigo.stop()
+        
+        global stop_line_follow
+        frame_lost_count -= 1
+        if frame_lost_count <= 0:
+                stop_line_follow = True
+                print("Quitting, no video for a time")
+    else:
+        global frame_lost_count_max
+        frame_lost_count = frame_lost_count_max
+
     last_frame_count = frame_count
 
 # Speed figures from GoPiGo, line_follow1.py
