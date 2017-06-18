@@ -175,8 +175,8 @@ def video_frame_control():
     finally:
         ld.stop()
         gopigo.stop()   
+        hw.turn_off_headlights()
     indications.finished()
-    hw.turn_off_headlights()
     print("Finished")
 
 def single_frame():
