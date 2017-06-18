@@ -61,6 +61,8 @@ last_frame_count = 0
 stop_line_follow = False
 frame_lost_count_max = int(10 * (1/periodic_interval))
 frame_lost_count = frame_lost_count_max
+battery_count_max = int(5 * (1/periodic_interval))
+battery_count = 10
 
 def continue_check():
     # @todo: check battery?
@@ -86,6 +88,13 @@ def periodic_process():
         global frame_lost_count_max
         frame_lost_count = frame_lost_count_max
 
+    global battery_count
+    global battery_count_max
+    battery_count -= 1
+    if battery_count <= 0:
+        battery_count = battery_count_max
+        print("Battery", gopigo.volt(), "volts")
+        
     last_frame_count = frame_count
 
 # Speed figures from GoPiGo, line_follow1.py
@@ -268,6 +277,7 @@ def whizzy_main():
                 else:
                     gopigo.led_on(1)
                     gopigo.led_off(0)
+                    print("Battery", gopigo.volt(), "volts")
     
     indications.quitting()
     gopigo.led_off(1)
