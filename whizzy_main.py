@@ -149,7 +149,7 @@ def analysis_result(position, turn_marker, start_stop_marker):
         # actually slightly biased...
         position = int(position)    # integer
         # make the move
-        #direction_lookup[position]()
+        direction_lookup[position]()
     
 def video_frame_control():
     hw.turn_on_white_headlights()
@@ -173,7 +173,8 @@ def video_frame_control():
             print("Total frame = %i" % frame_count)
             print("Frames per second = %.2f" % (frame_count / (end - start)))
     finally:
-        ld.stop()        
+        ld.stop()
+        gopigo.stop()   
     indications.finished()
     hw.turn_off_headlights()
     print("Finished")
@@ -235,9 +236,10 @@ def whizzy_main():
     while not hw.read_switch(shutdown_switch):
         time.sleep(0.2)
         if hw.read_switch(go_switch) or SIMULATION:
-            gopigo.led_on(0)
+            gopigo.led_off(1)
             gopigo.led_off(0)
             video_frame_control()
+            gopigo.stop()   # stop again ... just in case!
             # single_frame()
             wait_for_go_to_clear()
             time.sleep(0.4)
@@ -256,6 +258,8 @@ def whizzy_main():
                     gopigo.led_off(0)
     
     indications.quitting()
+    gopigo.led_off(1)
+    gopigo.led_off(0)
     
 def cmd_main():
     print("Welcome to Whizzy")
