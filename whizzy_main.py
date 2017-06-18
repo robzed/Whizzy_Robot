@@ -155,6 +155,12 @@ direction_lookup = [
                     turn_right, #20
                     ]
 
+def test_analysis(position, turn_marker, start_stop_marker):
+    global frame_count
+    frame_count += 1
+    if frame_count % 30 == 0:
+        print("%2.f %s %s" % (position, turn_marker, start_stop_marker))
+
 def analysis_result(position, turn_marker, start_stop_marker):
     global frame_count
     frame_count += 1
@@ -172,10 +178,13 @@ def analysis_result(position, turn_marker, start_stop_marker):
         # make the move
         direction_lookup[position]()
     
-def video_frame_control():
+def video_frame_control(test_mode=False):
     hw.turn_on_white_headlights()
-    ld = LineDetector(periodic_interval, continue_check, periodic_process, analysis_result)
-    
+    if not test_mode:
+        ld = LineDetector(periodic_interval, continue_check, periodic_process, analysis_result)
+    else:
+        ld = LineDetector(periodic_interval, continue_check, periodic_process, test_analysis)
+
     ld.start()
     try:
         ld.calibrate()
@@ -294,6 +303,24 @@ def cmd_main():
             print("Shutdown Raspberry Pi now!")
             
             os.system("sudo poweroff")
+        elif cmd == "forward":
+            if len(sys.argv) >= 3:
+                gopigo.set_speed(int(sys.argv[2]))
+                gopigo.fwd()
+                time.sleep(1)
+            else:
+                print("No speed")
+        elif cmd == "veer":
+            if len(sys.argv) >= 4:
+                gopigo.set_left_speed(int(sys.argv[2]))
+                gopigo.set_right_speed(int(sys.argv[3]))
+                gopigo.fwd()
+                time.sleep(1)
+            else:
+                print("No left speed, right speed ")
+        elif cmd == "line":
+            print("Requires Go set")
+            video_frame_control(test_mode=True)
         elif cmd == "Hon":
             hw.turn_on_white_headlights()
         elif cmd == "Hoff":
