@@ -182,12 +182,12 @@ def analysis_result(position, turn_marker, start_stop_marker):
         # proportional control
         if position < 0:
             other_speed = int(fwd_speed * (1+position))
-            gopigo.set_right_speed(other_speed)
-            gopigo.set_left_speed(fwd_speed)
+            gopigo.set_left_speed(other_speed)
+            gopigo.set_right_speed(fwd_speed)
         else:
             other_speed = int(fwd_speed * (1-position))
-            gopigo.set_right_speed(fwd_speed)
-            gopigo.set_left_speed(other_speed)
+            gopigo.set_left_speed(fwd_speed)
+            gopigo.set_right_speed(other_speed)
         
         gopigo.fwd()
     
