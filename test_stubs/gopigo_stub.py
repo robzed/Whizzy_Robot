@@ -31,3 +31,22 @@ def led_off(LED):
         sys.exit(1)
     print("gopigo: LED off", LED)
 
+def set_speed(speed):
+    print("Set speed", speed)
+
+def set_right_speed(speed):
+    print("Set right speed", speed)
+
+def set_left_speed(speed):
+    print("Set left speed", speed)
+    
+def fwd():
+    print("Forward")
+    
+def left():
+    print("Left")
+    
+def right():
+    print("Right")
+
+    

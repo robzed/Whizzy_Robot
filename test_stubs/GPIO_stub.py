@@ -4,9 +4,21 @@ Created on 29 May 2017
 @author: rob
 '''
 
-def input(pin):
-    print("read GPIO: input", pin, "returning False")
+_port_names = { 
+               25: "Go/Stop switch",
+               23: "Drag/Follow switch",
+               18: "Run/Shutdown switch",
+               24: "Buzzer",
+               }
+
+def _input(pin):
+    print("read GPIO: input %i (%s)" % (pin, _port_names[pin]))
+    #i = input("read GPIO: input %i (%s)" % (pin, _port_names[pin]))
+    #if i == "1":
+    #    return True
     return False
+
+input = _input
 
 RPI_REVISION = 1
 

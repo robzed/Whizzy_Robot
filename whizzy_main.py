@@ -85,6 +85,54 @@ fwd_speed = 110                     # Forward speed at which the GoPiGo should r
 slight_turn_speed = int(.7*fwd_speed)
 turn_speed = int(.7*fwd_speed)
 
+def straight():
+    gopigo.set_speed(fwd_speed)
+    gopigo.fwd()
+
+def veer_left():
+    gopigo.set_right_speed(slight_turn_speed)
+    gopigo.set_left_speed(fwd_speed)
+    gopigo.fwd()
+        
+def turn_left():
+    gopigo.set_speed(turn_speed)
+    gopigo.left()
+        
+def veer_right():
+    gopigo.set_right_speed(fwd_speed)
+    gopigo.set_left_speed(slight_turn_speed)
+    gopigo.fwd()
+
+def turn_right():
+    gopigo.set_speed(turn_speed)
+    gopigo.right()
+
+direction_lookup = [
+                    turn_left, #0
+                    turn_left, #1
+                    turn_left, #2
+                    veer_left, #3
+                    veer_left, #4
+                    veer_left, #5
+                    veer_left, #6
+                    veer_left, #7
+                    straight, #8
+                    straight, #9
+                    
+                    straight, #10
+                    
+                    straight, #11
+                    straight, #12
+                    veer_right, #13
+                    veer_right, #14
+                    veer_right, #15
+                    veer_right, #16
+                    veer_right, #17
+                    turn_right, #18
+                    turn_right, #19
+                    turn_right, #20
+                    ]
+
 def analysis_result(position, turn_marker, start_stop_marker):
     global frame_count
     frame_count += 1
@@ -97,8 +145,10 @@ def analysis_result(position, turn_marker, start_stop_marker):
     if not stop_line_follow:
         position += 1   # change range to 0 to 2, mid 1
         position *= 10  # now it' 0 to 20, 10 center.
+        # actually slightly biased...
         position = int(position)    # integer
-        
+        # make the move
+        #direction_lookup[position]()
     
 def video_frame_control():
     hw.turn_on_white_headlights()
