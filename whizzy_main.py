@@ -159,7 +159,7 @@ def test_analysis(position, turn_marker, start_stop_marker):
     global frame_count
     frame_count += 1
     if frame_count % 30 == 0:
-        print("%2.f %s %s" % (position, turn_marker, start_stop_marker))
+        print("%.3f %s %s" % (position, turn_marker, start_stop_marker))
 
 def analysis_result(position, turn_marker, start_stop_marker):
     global frame_count
@@ -315,7 +315,7 @@ def cmd_main():
                 gopigo.set_left_speed(int(sys.argv[2]))
                 gopigo.set_right_speed(int(sys.argv[3]))
                 gopigo.fwd()
-                time.sleep(1)
+                time.sleep(4)
             else:
                 print("No left speed, right speed ")
         elif cmd == "line":
