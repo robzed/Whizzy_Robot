@@ -171,12 +171,23 @@ def analysis_result(position, turn_marker, start_stop_marker):
     #
     # We probably want to use some sort of PID controller to set the wheel speeds
     if not stop_line_follow:
-        position += 1   # change range to 0 to 2, mid 1
-        position *= 10  # now it' 0 to 20, 10 center.
-        # actually slightly biased...
-        position = int(position)    # integer
-        # make the move
-        direction_lookup[position]()
+#        position += 1   # change range to 0 to 2, mid 1
+#        position *= 10  # now it' 0 to 20, 10 center.
+#        # actually slightly biased...
+#        position = int(position)    # integer
+#        # make the move
+#        direction_lookup[position]()
+
+        # The speed of the GoPiGo can be between 0-255. The default speed is 200.
+        # proportional control
+        if position < 0:
+            gopigo.set_right_speed(fwd_speed * (1+position))
+            gopigo.set_left_speed(fwd_speed)
+        else:
+            gopigo.set_right_speed(fwd_speed)
+            gopigo.set_left_speed(fwd_speed * (1-position))
+        
+        gopigo.fwd()
     
 def video_frame_control(test_mode=False):
     hw.turn_on_white_headlights()
