@@ -181,11 +181,13 @@ def analysis_result(position, turn_marker, start_stop_marker):
         # The speed of the GoPiGo can be between 0-255. The default speed is 200.
         # proportional control
         if position < 0:
-            gopigo.set_right_speed(fwd_speed * (1+position))
+            other_speed = int(fwd_speed * (1+position))
+            gopigo.set_right_speed(other_speed)
             gopigo.set_left_speed(fwd_speed)
         else:
+            other_speed = int(fwd_speed * (1-position))
             gopigo.set_right_speed(fwd_speed)
-            gopigo.set_left_speed(fwd_speed * (1-position))
+            gopigo.set_left_speed(other_speed)
         
         gopigo.fwd()
     
