@@ -212,10 +212,25 @@ def single_frame():
     hw.turn_off_headlights()
     print("Finished")
 
+def wait_for_go_to_clear():
+    while hw.read_switch(go_switch):
+        if hw.read_switch(shutdown_switch):
+            break
+        hw.buzzer_on()
+        time.sleep(0.1)
+        hw.buzzer_off()
+        for _ in range(5):
+            time.sleep(0.1)
+            if not hw.read_switch(go_switch):
+                break
+
 def whizzy_main():
     led_mode = False
     led_count = 0
     indications.awake()
+    time.sleep(0.4)
+    wait_for_go_to_clear()
+
     while not hw.read_switch(shutdown_switch):
         time.sleep(0.2)
         if hw.read_switch(go_switch) or SIMULATION:
@@ -223,12 +238,13 @@ def whizzy_main():
             gopigo.led_off(0)
             video_frame_control()
             # single_frame()
+            wait_for_go_to_clear()
             time.sleep(0.4)
 
         if not SIMULATION:
             # visual indication that we are running
             led_count += 1
-            if led_count == 5:
+            if led_count == 4:
                 led_count = 0
                 led_mode = not led_mode
                 if led_mode == 0:
