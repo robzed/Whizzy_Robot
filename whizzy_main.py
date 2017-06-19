@@ -25,6 +25,8 @@
 # 
 import sys
 import os
+from whizzy_basic_hardware import buzzer_on
+from whizzy_basic_hardware import buzzer_off
 
 try:
     import gopigo
@@ -63,10 +65,19 @@ frame_lost_count_max = int(10 * (1/periodic_interval))
 frame_lost_count = frame_lost_count_max
 battery_count_max = int(5 * (1/periodic_interval))
 battery_count = 10
+last_buzzer = False
+drag_race = False
+delayed_stopping = False
 
+    
 def continue_check():
     # @todo: check battery?
-    return not stop_line_follow and hw.read_switch(go_switch) and not hw.read_switch(shutdown_switch)
+    result = not stop_line_follow and hw.read_switch(go_switch) and not hw.read_switch(shutdown_switch)
+    global delayed_stopping
+    if delayed_stopping:
+        result = result and gopigo.read_enc_status()
+    return result
+
 
 def periodic_process():
     # @todo: check battery?
@@ -180,6 +191,10 @@ def analysis_result(position, turn_marker, start_stop_marker):
 
         # The speed of the GoPiGo can be between 0-255. The default speed is 200.
         # proportional control
+        
+        # @todo: investigate constants here ... effectively proportional constant
+        position *= 0.5 # scale position to be less brutal to speed, to see if that helps
+        
         if position < 0:
             other_speed = int(fwd_speed * (1+position))
             gopigo.set_left_speed(other_speed)
@@ -190,7 +205,44 @@ def analysis_result(position, turn_marker, start_stop_marker):
             gopigo.set_right_speed(other_speed)
         
         gopigo.fwd()
-    
+        
+        global last_buzzer
+        if turn_marker or start_stop_marker:
+            # ignore first start/stop marker...
+            # stop after past second start/stop marker
+            #global drag_race
+            if drag_race or start_stop_marker:
+            # @todo: Add back in once debugged beep ...
+                global delayed_stopping
+            #    delayed_stopping = True
+            
+                # 4 wheel rotations = 72
+                # number of encoder pulses to target (18 per rotation)
+            #    gopigo.enc_tgt(1,1,72)
+            #    gopigo.fwd()
+            
+            # todo:drag AND line follow - ignore first markers
+            
+            
+            hw.buzzer_on()
+            last_buzzer = True
+        elif last_buzzer:
+            hw.buzzer_off()
+            last_buzzer = False
+
+def wait_for_go_to_set():
+    while not hw.read_switch(go_switch):
+        if hw.read_switch(shutdown_switch):
+            break
+        hw.buzzer_on()
+        time.sleep(0.1)
+        hw.buzzer_off()
+        for _ in range(5):
+            time.sleep(0.1)
+            if hw.read_switch(go_switch):
+                break
+
+
 def video_frame_control(test_mode=False):
     hw.turn_on_white_headlights()
     if not test_mode:
@@ -205,10 +257,15 @@ def video_frame_control(test_mode=False):
             print("Camera Calibration Failed")
             indications.warning(2)
         else:
+            global drag_race
+            if drag_race:
+                wait_for_go_to_set()
             global last_frame_count
             last_frame_count = -1   # give it time to find the line again
             global stop_line_follow
             stop_line_follow = False    # don't stop yet
+            global delayed_stopping
+            delayed_stopping = False    # not delayed yet
             start = time.perf_counter()
             ld.video_capture()
             end = time.perf_counter()
@@ -269,6 +326,18 @@ def wait_for_go_to_clear():
             if not hw.read_switch(go_switch):
                 break
 
+def wait_for_drag_to_clear():
+    while hw.read_switch(drag_switch):
+        if hw.read_switch(shutdown_switch):
+            break
+        hw.buzzer_on()
+        time.sleep(0.1)
+        hw.buzzer_off()
+        for _ in range(5):
+            time.sleep(0.1)
+            if not hw.read_switch(drag_switch):
+                break
+
 def whizzy_main():
     led_mode = False
     led_count = 0
@@ -278,13 +347,20 @@ def whizzy_main():
 
     while not hw.read_switch(shutdown_switch):
         time.sleep(0.2)
-        if hw.read_switch(go_switch) or SIMULATION:
+        drag_switch = hw.read_switch(drag_switch)
+        if hw.read_switch(go_switch) or SIMULATION or drag_switch:
+            global drag_race
+            if drag_switch:
+                drag_race = True
+            else:
+                drag_race = False
             gopigo.led_off(1)
             gopigo.led_off(0)
             video_frame_control()
             gopigo.stop()   # stop again ... just in case!
             # single_frame()
             wait_for_go_to_clear()
+            wait_for_drag_to_clear()
             time.sleep(0.4)
 
         if not SIMULATION:

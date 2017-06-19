@@ -48,5 +48,15 @@ def left():
     
 def right():
     print("Right")
+    
+def read_enc_status():
+    return 1        # 0=reached target
+
+def enc_tgt(m1, m2, target):
+    pass
+
+
+
+
 
     
