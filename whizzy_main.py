@@ -209,19 +209,19 @@ def analysis_result(position, turn_marker, start_stop_marker):
             # stop after past second start/stop marker
             
             #global drag_race
-            if drag_race or start_stop_marker:
+            if (drag_race or start_stop_marker) and not delayed_stopping:
                 hw.buzzer_on()
                 
             # @todo: Add back in once debugged beep ...
                 global delayed_stopping
-            #    delayed_stopping = True
+                delayed_stopping = True
             
                 # 4 wheel rotations = 72
                 # number of encoder pulses to target (18 per rotation)
-            #    gopigo.enc_tgt(1,1,72)
-            #    gopigo.fwd()
+                gopigo.enc_tgt(1,1,54)
+                gopigo.fwd()
             
-            # todo:drag AND line follow - ignore first markers
+                # todo:drag AND line follow - ignore first markers
             
 
 def wait_for_go_to_set():
