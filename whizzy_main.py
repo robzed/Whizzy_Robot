@@ -225,9 +225,10 @@ def analysis_result(position, turn_marker, start_stop_marker):
             global delayed_stopping
             if drag_race or start_stop_marker:
                 hw.buzzer_on()
+                
+                global ignore_first_start_marker
                 if not delayed_stopping and not ignore_first_start_marker:
 
-                    global ignore_first_start_marker
                     global ignore_first_start_marker_found
                     if ignore_first_start_marker:
                         ignore_first_start_marker_found = True
