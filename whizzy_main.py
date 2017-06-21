@@ -78,13 +78,10 @@ def continue_check():
         ignore_first_start_marker = False
         ignore_first_start_marker_found = False
         print("Finished ignoring start")
-        hw.buzzer_off()
 
     global delayed_stopping
     if delayed_stopping:
         result = result and gopigo.read_enc_status()
-        if not result:
-            hw.buzzer_off()
 
     return result
 
