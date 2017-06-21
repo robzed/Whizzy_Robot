@@ -25,8 +25,6 @@
 # 
 import sys
 import os
-from whizzy_basic_hardware import buzzer_on
-from whizzy_basic_hardware import buzzer_off
 
 try:
     import gopigo
@@ -65,7 +63,6 @@ frame_lost_count_max = int(10 * (1/periodic_interval))
 frame_lost_count = frame_lost_count_max
 battery_count_max = int(5 * (1/periodic_interval))
 battery_count = 10
-last_buzzer = False
 drag_race = False
 delayed_stopping = False
 
@@ -206,12 +203,15 @@ def analysis_result(position, turn_marker, start_stop_marker):
         
         gopigo.fwd()
         
-        global last_buzzer
+        hw.buzzer_off()
         if turn_marker or start_stop_marker:
             # ignore first start/stop marker...
             # stop after past second start/stop marker
+            
             #global drag_race
             if drag_race or start_stop_marker:
+                hw.buzzer_on()
+                
             # @todo: Add back in once debugged beep ...
                 global delayed_stopping
             #    delayed_stopping = True
@@ -223,12 +223,6 @@ def analysis_result(position, turn_marker, start_stop_marker):
             
             # todo:drag AND line follow - ignore first markers
             
-            
-            hw.buzzer_on()
-            last_buzzer = True
-        elif last_buzzer:
-            hw.buzzer_off()
-            last_buzzer = False
 
 def wait_for_go_to_set():
     while not hw.read_switch(go_switch):
@@ -347,8 +341,8 @@ def whizzy_main():
 
     while not hw.read_switch(shutdown_switch):
         time.sleep(0.2)
-        drag_switch = hw.read_switch(drag_switch)
-        if hw.read_switch(go_switch) or SIMULATION or drag_switch:
+        drag_switch_state = hw.read_switch(drag_switch)
+        if hw.read_switch(go_switch) or SIMULATION or drag_switch_state:
             global drag_race
             if drag_switch:
                 drag_race = True
