@@ -208,12 +208,12 @@ def analysis_result(position, turn_marker, start_stop_marker):
             # ignore first start/stop marker...
             # stop after past second start/stop marker
             
-            #global drag_race
+            global drag_race
+            global delayed_stopping
             if (drag_race or start_stop_marker) and not delayed_stopping:
                 hw.buzzer_on()
                 
             # @todo: Add back in once debugged beep ...
-                global delayed_stopping
                 delayed_stopping = True
             
                 # 4 wheel rotations = 72
