@@ -65,11 +65,18 @@ battery_count_max = int(5 * (1/periodic_interval))
 battery_count = 10
 drag_race = False
 delayed_stopping = False
-
+ignore_first_start_marker = False
+ignore_first_start_marker_found = False
     
 def continue_check():
     # @todo: check battery?
     result = not stop_line_follow and hw.read_switch(go_switch) and not hw.read_switch(shutdown_switch)
+    
+    global ignore_first_start_marker
+    global ignore_first_start_marker_found
+    if ignore_first_start_marker_found and not gopigo.read_enc_status():
+        ignore_first_start_marker = False
+
     global delayed_stopping
     if delayed_stopping:
         result = result and gopigo.read_enc_status()
@@ -217,11 +224,17 @@ def analysis_result(position, turn_marker, start_stop_marker):
                 hw.buzzer_on()
                 if not delayed_stopping:
 
-                    delayed_stopping = True
+                    global ignore_first_start_marker
+                    global ignore_first_start_marker_found
+                    if ignore_first_start_marker:
+                        ignore_first_start_marker_found = True
+                    else:
+                        delayed_stopping = True
             
-                    # 4 wheel rotations = 72
+                    # wheel diameter = 6cm (~18cm circumference)
+                    # 2 wheel rotations = 36, 4 wheel rotations = 72
                     # number of encoder pulses to target (18 per rotation)
-                    gopigo.enc_tgt(1,1,54)
+                    gopigo.enc_tgt(1,1,27)
                     gopigo.fwd()
             
                 # todo:drag AND line follow - ignore first markers
@@ -263,6 +276,12 @@ def video_frame_control(test_mode=False):
             stop_line_follow = False    # don't stop yet
             global delayed_stopping
             delayed_stopping = False    # not delayed yet
+            
+            global ignore_first_start_marker
+            ignore_first_start_marker = True
+            global ignore_first_start_marker_found
+            ignore_first_start_marker_found = False
+
             start = time.perf_counter()
             ld.video_capture()
             end = time.perf_counter()
@@ -346,6 +365,7 @@ def whizzy_main():
         time.sleep(0.2)
         drag_switch_state = hw.read_switch(drag_switch)
         if hw.read_switch(go_switch) or SIMULATION or drag_switch_state:
+
             global drag_race
             if drag_switch:
                 drag_race = True
