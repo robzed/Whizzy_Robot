@@ -77,7 +77,7 @@ def continue_check():
     if ignore_first_start_marker_found and not gopigo.read_enc_status():
         ignore_first_start_marker = False
         ignore_first_start_marker_found = False
-        print("Finished ignoring marker")
+        print("Finished ignoring start")
         hw.buzzer_off()
 
     global delayed_stopping
@@ -227,15 +227,13 @@ def analysis_result(position, turn_marker, start_stop_marker):
                 hw.buzzer_on()
                 
                 global ignore_first_start_marker
-                if not delayed_stopping and not ignore_first_start_marker:
-
-                    global ignore_first_start_marker_found
+                global ignore_first_start_marker_found
+                if not delayed_stopping and not ignore_first_start_marker_found:
+                    
                     if ignore_first_start_marker:
                         ignore_first_start_marker_found = True
-                        print("Ignoring marker")
                     else:
                         delayed_stopping = True
-                        print("Delayed stop")
             
                     # wheel diameter = 6cm (~18cm circumference)
                     # 2 wheel rotations = 36, 4 wheel rotations = 72
