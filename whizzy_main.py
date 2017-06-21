@@ -73,7 +73,8 @@ def continue_check():
     global delayed_stopping
     if delayed_stopping:
         result = result and gopigo.read_enc_status()
-        hw.buzzer_off()
+        if not result:
+            hw.buzzer_off()
 
     return result
 
