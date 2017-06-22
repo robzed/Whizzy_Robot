@@ -362,6 +362,7 @@ def whizzy_main():
     indications.awake()
     time.sleep(0.4)
     wait_for_switch_to_clear(go_switch)
+    wait_for_switch_to_clear(drag_switch)
 
     while not hw.read_switch(shutdown_switch):
         time.sleep(0.2)
