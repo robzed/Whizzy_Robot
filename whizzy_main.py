@@ -67,7 +67,8 @@ drag_race = False
 delayed_stopping = False
 ignore_first_start_marker = False
 ignore_first_start_marker_found = False
-    
+frame_rate_map = {}
+
 def continue_check():
     # @todo: check battery?
     result = not stop_line_follow and hw.read_switch(go_switch) and not hw.read_switch(shutdown_switch)
@@ -93,6 +94,14 @@ def periodic_process():
     global frame_count
     global last_frame_count
     global frame_lost_count
+    number_frames = frame_lost_count - last_frame_count
+    global frame_rate_map
+    if number_frames in frame_rate_map:
+        frame_rate_map[number_frames] += 1
+    else:
+        frame_rate_map[number_frames] = 1
+    
+    # check for no video
     if last_frame_count == frame_count:
         print("No video received for", periodic_interval)
         gopigo.stop()
@@ -277,7 +286,9 @@ def video_frame_control(test_mode=False):
             stop_line_follow = False    # don't stop yet
             global delayed_stopping
             delayed_stopping = False    # not delayed yet
-            
+            global frame_rate_map
+            frame_rate_map = {}
+
             global ignore_first_start_marker
             ignore_first_start_marker = True
             global ignore_first_start_marker_found
@@ -289,6 +300,8 @@ def video_frame_control(test_mode=False):
             print("Total Capture time =%.2s" % (end - start))
             print("Total frame = %i" % frame_count)
             print("Frames per second = %.2f" % (frame_count / (end - start)))
+            print('Frame rate map')
+            print(frame_rate_map)
     finally:
         ld.stop()
         gopigo.stop()   
