@@ -331,28 +331,16 @@ def single_frame():
     hw.turn_off_headlights()
     print("Finished")
 
-def wait_for_go_to_clear():
-    while hw.read_switch(go_switch):
-        if hw.read_switch(shutdown_switch):
+def wait_for_switch_to_clear(which_switch):
+    while hw.read_switch(which_switch):
+        if which_switch != shutdown_switch and hw.read_switch(shutdown_switch):
             break
         hw.buzzer_on()
         time.sleep(0.1)
         hw.buzzer_off()
         for _ in range(5):
             time.sleep(0.1)
-            if not hw.read_switch(go_switch):
-                break
-
-def wait_for_drag_to_clear():
-    while hw.read_switch(drag_switch):
-        if hw.read_switch(shutdown_switch):
-            break
-        hw.buzzer_on()
-        time.sleep(0.1)
-        hw.buzzer_off()
-        for _ in range(5):
-            time.sleep(0.1)
-            if not hw.read_switch(drag_switch):
+            if not hw.read_switch(which_switch):
                 break
 
 def whizzy_main():
@@ -360,7 +348,7 @@ def whizzy_main():
     led_count = 0
     indications.awake()
     time.sleep(0.4)
-    wait_for_go_to_clear()
+    wait_for_switch_to_clear(go_switch)
 
     while not hw.read_switch(shutdown_switch):
         time.sleep(0.2)
@@ -368,7 +356,7 @@ def whizzy_main():
         if hw.read_switch(go_switch) or SIMULATION or drag_switch_state:
 
             global drag_race
-            if drag_switch:
+            if drag_switch_state:
                 drag_race = True
             else:
                 drag_race = False
@@ -377,8 +365,8 @@ def whizzy_main():
             video_frame_control()
             gopigo.stop()   # stop again ... just in case!
             # single_frame()
-            wait_for_go_to_clear()
-            wait_for_drag_to_clear()
+            wait_for_switch_to_clear(go_switch)
+            wait_for_switch_to_clear(drag_switch)
             time.sleep(0.4)
 
         if not SIMULATION:
@@ -406,6 +394,7 @@ def cmd_main():
     if len(sys.argv) >= 2:
         cmd = sys.argv[1]
         if cmd == "shutdown_on_exit":
+            wait_for_switch_to_clear(shutdown_switch)
             whizzy_main()
             print("Shutdown Raspberry Pi now!")
             
