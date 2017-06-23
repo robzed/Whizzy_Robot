@@ -44,34 +44,55 @@ class RawImage():
                 print(self.height, self.width, self.depth)
                 sys.exit(1)
 
-        #=======================================================================
-        # elif file_extension == '.bmp':
-        #     # very naive bitmap reader ... easily broken
-        #     with open(filename, 'rb') as f:
-        #         fileheader = f.read(14)
-        #         infoheader= f.read(40)
-        #         bgra_data = f.read()
-        #     
-        #     (type, fsize, reserved, offset) = struct.unpack('<2sLLL', fileheader)
-        #     (hsize, w, h, planes, bpp, comp, isize, xppm, yppm, cct, icc) = struct.unpack('<LLLHHLLLLLL', infoheader)
-        #     
-        #     if type != b'BM':
-        #         print("Header not BM")
-        #         sys.exit(1)
-        #     if offset != 14+40 or fsize != 14+40+len(rgb_data):
-        #         print("Header sizes/offset unexpected")
-        #         sys.exit(1)
-        #     if hsize != 40:
-        #         print("Header sizes unexpected")
-        #         sys.exit(1)
-        #     if self.h != 320 or self.w != 240 or self.bpp != 32:
-        #         print("Wrong sized RAW image")
-        #         print(self.height, self.width, self.depth)
-        #         sys.exit(1)
-        #     
-        #     #need to resize bits per pixel and format from 
-        #     #need to reverse lines
-        #=======================================================================
+        elif file_extension == '.bmp':
+            # very naive bitmap reader ... easily broken
+            with open(filename, 'rb') as f:
+                fileheader = f.read(14)
+                infoheader= f.read(40)
+                bgra_data = f.read()
+             
+            (image_type, fsize, _reserved, offset) = struct.unpack('<2sLLL', fileheader)
+            (hsize, self.width, self.height, planes, bpp, comp, isize, xppm, yppm, cct, icc) = struct.unpack('<LLLHHLLLLLL', infoheader)
+             
+            if image_type != b'BM':
+                print("Header not BM")
+                sys.exit(1)
+            if offset != 14+40 or fsize != 14+40+len(bgra_data):
+                print("Header sizes/offset unexpected")
+                sys.exit(1)
+            if hsize != 40:
+                print("Header sizes unexpected")
+                sys.exit(1)
+            if self.height != 240 or self.width != 320 or (bpp != 32 and bpp != 24):
+                print("Wrong sized RAW image")
+                print(self.height, self.width, self.depth)
+                sys.exit(1)
+            
+            if bpp == 32:
+                bytespp = 4
+            else:
+                bytespp = 3
+            line_size = self.width * bytespp
+            if line_size % 4:
+                print("Need to align line size")
+                sys.exit(1)
+            # need to resize bits per pixel and format from bgra
+            # need to reverse lines
+            rgb_data = bytearray(line_size * self.height)
+            for h in range(self.height):
+                for w in range(self.width):
+                    source = (((self.height-1)-h)*line_size) + w*bytespp
+                    b = bgra_data[ source ]
+                    g = bgra_data[ source + 1 ]
+                    r = bgra_data[ source + 2 ]
+                    #a = bgra_data[ source + 3 ]
+                    dest = (h*self.width + w) * 3
+                    rgb_data[dest] = r
+                    rgb_data[dest+1] = g
+                    rgb_data[dest+2] = b
+
+            self.depth = 24
+            
         else:
             print("Unknown file extension", filename)
             sys.exit(1)
@@ -163,7 +184,8 @@ class PiCamera_stub():
         '''
         self.resolution = (1024, 768)
         self.test_image = RawImage("cam3i.raw")
-    
+        bmp_test_image = RawImage("../problem1_320.bmp")
+        
     def start_preview(self, **options):
         pass
     
