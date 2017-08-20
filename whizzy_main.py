@@ -458,6 +458,7 @@ def cmd_main():
         return
         
     whizzy_main()
+    print("Normal exit without shutdown")
 
 if __name__ == "__main__":
     cmd_main()
