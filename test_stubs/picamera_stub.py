@@ -184,7 +184,9 @@ class PiCamera_stub():
         '''
         self.resolution = (1024, 768)
         self.test_image = RawImage("cam3i.raw")
-        bmp_test_image = RawImage("../problem1_320.bmp")
+        self.image_set = []
+        for i in range(6):
+            self.image_set.append(RawImage("../problem%i_320.bmp" % (i+1)))
         
     def start_preview(self, **options):
         pass
@@ -201,6 +203,8 @@ class PiCamera_stub():
         output[:] = self.test_image.YUV420_data
     
     def start_recording(self, output, format=None, resize=None):
+        self.time_so_far = 0
+        self.image_index = 0
         if resize[0] != 320 and resize[1] != 240:
             print("unexpected resize")
             sys.exit(1)
@@ -219,8 +223,12 @@ class PiCamera_stub():
         while wait_time > 0:
             time.sleep(step_time)
             wait_time -= step_time
-            self.output.write(self.test_image.YUV420_data)
-        
+            self.time_so_far += step_time
+            #self.output.write(self.test_image.YUV420_data)
+            if self.image_index != 5:
+                self.image_index = int(self.time_so_far / 0.3)
+            self.output.write(self.self.image_set[self.image_index].YUV420_data)
+            
     def stop_recording(self):
         pass
     
